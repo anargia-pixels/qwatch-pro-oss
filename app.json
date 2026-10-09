@@ -1,21 +1,34 @@
 {
   "expo": {
-    "name": "cloned-qwatch-pro",
-    "slug": "cloned-qwatch-pro",
+    "name": "QWatch OSS",
+    "slug": "qwatch-pro-oss-native",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "heroui-native-app",
-    "userInterfaceStyle": "automatic",
+    "scheme": "qwatchproossnative",
+    "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.qwatchproossnative.app",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "QWatch OSS connects to your smart band over Bluetooth.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FFF6E5"
       },
-      "predictiveBackGestureEnabled": false
+      "package": "com.qwatchproossnative.app",
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.INTERNET"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -25,10 +38,33 @@
         {
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#FFF6E5"
         }
       ],
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": true,
+          "neverForLocation": true,
+          "modes": ["central"],
+          "bluetoothAlwaysPermission": "QWatch OSS connects to your smart band over Bluetooth."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#FFE69A"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

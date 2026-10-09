@@ -4,8 +4,17 @@
     "strict": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@/assets/*": ["./assets/*"]
-    }
+      "@/assets/*": ["./assets/*"],
+      "@/modules/*": ["./modules/*"]
+    },
+    "types": ["bun"]
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "uniwind-env.d.ts"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "uniwind-env.d.ts"
+  ],
+  "exclude": ["tools", "android", "ios"]
 }

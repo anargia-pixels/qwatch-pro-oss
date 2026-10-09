@@ -1,52 +1,201 @@
-import { Button, Card, Typography, useThemeColor } from "heroui-native";
 import type { JSX } from "react";
 import { View } from "react-native";
-import Svg, { Path } from "react-native-svg";
 
-function HeroUILogo({ tintColor }: { tintColor: string }): JSX.Element {
+import { BatteryCard } from "@/components/BatteryCard";
+import { ConnectionCard } from "@/components/ConnectionCard";
+import { HourlyChart } from "@/components/HourlyChart";
+import { Screen } from "@/components/Screen";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader } from "@/components/ui/card";
+import { IconBadge } from "@/components/ui/icon-badge";
+import { SectionTitle } from "@/components/ui/section-title";
+import { Text } from "@/components/ui/text";
+import { qwatch } from "@/lib/ble/client";
+import { formatDistance, heartRateBars, spo2Bars, timeAgo } from "@/lib/format";
+import { band, type Reading } from "@/lib/store/band";
+import type { Tone } from "@/lib/theme";
+
+const SOURCE_LABEL = {
+  manual: "measured",
+  live: "live",
+  history: "auto",
+} as const;
+
+function ReadingCard({
+  title,
+  unit,
+  icon,
+  tone,
+  reading,
+  measuring,
+  onMeasure,
+  children,
+}: {
+  title: string;
+  unit: string;
+  icon: "heart" | "droplet";
+  tone: Tone;
+  reading: Reading | null;
+  measuring: boolean;
+  onMeasure: () => void;
+  children?: JSX.Element;
+}): JSX.Element {
+  const connected = band.useSelector((s) => s.status === "connected");
   return (
-    <Svg width={90} height={30} viewBox="0 0 140 44" fill="none">
-      <Path
-        d="M0.677734 11.3847V24.0405C0.677734 24.6387 0.985209 25.1946 1.49107 25.5109L10.1195 30.9067C11.2693 31.6257 12.7586 30.796 12.7586 29.4363V18.7981C12.7586 18.186 13.0803 17.6194 13.605 17.3074L18.8683 14.1785V41.4437C18.8683 42.7988 20.3486 43.6293 21.4988 42.9195L30.4044 37.4229C30.9152 37.1076 31.2264 36.549 31.2264 35.9471V9.76484C31.2264 8.41634 29.759 7.58483 28.6085 8.28139L18.8683 14.1785V2.55643C18.8683 1.21158 17.408 0.379537 16.2574 1.06878L1.51927 9.89703C0.997365 10.2097 0.677734 10.7747 0.677734 11.3847Z"
-        fill={tintColor}
-      />
-      <Path
-        d="M63.8763 24.0707C63.8763 20.4817 62.4078 18.8253 59.4709 18.8253C56.1076 18.8253 53.7391 21.0799 53.7391 26.1412V37.7363H47.6756V5.52769H53.7391V17.3069C55.2075 14.9142 57.6234 13.7179 60.9394 13.7179C66.5764 13.7179 69.8924 17.1688 69.8924 22.9664V37.7363H63.8763V24.0707Z"
-        fill={tintColor}
-      />
-      <Path
-        d="M84.8996 38.4725C77.3677 38.4725 72.5832 33.5952 72.5832 26.0952C72.5832 18.6872 77.3203 13.7179 84.8996 13.7179C93.0947 13.7179 97.5475 19.5154 96.3158 27.6596H78.6467C78.9783 31.5247 81.252 33.7333 84.8996 33.7333C87.8839 33.7333 89.684 32.2149 90.1577 30.6964H96.1737C95.2263 35.2057 91.0577 38.4725 84.8996 38.4725ZM78.7888 23.6566H90.4419C90.3945 20.4817 88.3102 18.3191 84.7574 18.3191C81.5836 18.3191 79.3572 20.1596 78.7888 23.6566Z"
-        fill={tintColor}
-      />
-      <Path
-        d="M99.6225 20.3437C99.6225 16.5246 101.754 14.4541 105.828 14.4541H113.597V19.4234H105.686V37.7363H99.6225V20.3437Z"
-        fill={tintColor}
-      />
-      <Path
-        d="M126.863 38.4725C119.189 38.4725 114.31 33.5492 114.31 26.0952C114.31 18.6412 119.189 13.7179 126.863 13.7179C134.442 13.7179 139.322 18.6412 139.322 26.0952C139.322 33.5492 134.442 38.4725 126.863 38.4725ZM126.863 33.4572C130.653 33.4572 133.163 30.5584 133.163 26.0952C133.163 21.632 130.653 18.6872 126.863 18.6872C123.026 18.6872 120.515 21.632 120.515 26.0952C120.515 30.5584 123.026 33.4572 126.863 33.4572Z"
-        fill={tintColor}
-      />
-    </Svg>
+    <Card tone={tone}>
+      <CardHeader icon={icon} title={title}>
+        {reading ? <Badge label={SOURCE_LABEL[reading.source]} /> : null}
+      </CardHeader>
+      <View className="mt-3 flex-row items-end gap-2">
+        <Text weight="bold" className="text-6xl leading-none">
+          {reading ? String(reading.value) : "--"}
+        </Text>
+        <Text weight="bold" className="mb-2 text-xl">
+          {unit}
+        </Text>
+      </View>
+      <Text className="text-sm text-muted">
+        {reading ? timeAgo(reading.measuredAt) : "No reading yet"}
+      </Text>
+      <View className="mt-4 gap-3">
+        <Button
+          label={measuring ? "Measuring… keep still" : "Measure now"}
+          icon="zap"
+          tone="paper"
+          busy={measuring}
+          disabled={!connected}
+          onPress={onMeasure}
+        />
+        {children}
+      </View>
+    </Card>
   );
 }
 
-export default function HomeTab(): JSX.Element {
-  const themeColorForeground = useThemeColor("foreground");
+export default function TodayScreen(): JSX.Element {
+  const heartRate = band.useSelector((s) => s.heartRate);
+  const spo2 = band.useSelector((s) => s.spo2);
+  const measuring = band.useSelector((s) => s.measuring);
+  const live = band.useSelector((s) => s.liveHeartRate);
+  const activity = band.useSelector((s) => s.activity);
+  const goals = band.useSelector((s) => s.settings.goals);
+  const format = band.useSelector((s) => s.settings.displayFormat);
+  const hrHistory = band.useSelector((s) => s.heartRateHistory);
+  const spo2History = band.useSelector((s) => s.spo2History);
+  const connected = band.useSelector((s) => s.status === "connected");
+
+  const stepGoal = goals?.steps ?? 0;
+  const progress =
+    stepGoal > 0 && activity ? Math.min(1, activity.steps / stepGoal) : 0;
+  const metric = format?.metric ?? true;
 
   return (
-    <View className="flex-1 bg-background justify-center px-6">
-      <Card className="items-center gap-8">
-        <HeroUILogo tintColor={themeColorForeground} />
-        <Typography.Paragraph className="text-center">
-          A modern starter for React Native, preconfigured with HeroUI Native, Uniwind, and Expo
-          Router. Edit{" "}
-          <Typography.Paragraph className="font-semibold">
-            app/(tabs)/index.tsx
-          </Typography.Paragraph>{" "}
-          and watch it reload.
-        </Typography.Paragraph>
-        <Button className="w-full">Get started</Button>
+    <Screen title="Today" subtitle={new Date().toDateString()}>
+      <ConnectionCard />
+      {connected ? <BatteryCard /> : null}
+
+      <Card tone="mint">
+        <View className="flex-row items-center gap-3">
+          <IconBadge icon="trending-up" tone="paper" />
+          <Text weight="bold" className="flex-1 text-lg">
+            Steps
+          </Text>
+          {stepGoal > 0 ? (
+            <Badge label={`goal ${stepGoal.toLocaleString()}`} />
+          ) : null}
+        </View>
+        <Text weight="bold" className="mt-3 text-6xl leading-none">
+          {activity ? activity.steps.toLocaleString() : "--"}
+        </Text>
+        <View className="mt-3 h-5 overflow-hidden rounded-full border-2 border-ink bg-paper">
+          <View
+            className="h-full rounded-full bg-ink"
+            style={{ width: `${progress * 100}%` }}
+          />
+        </View>
+        <View className="mt-4 flex-row gap-2">
+          <Stat
+            label="Distance"
+            value={activity ? formatDistance(activity.meters, metric) : "--"}
+          />
+          <Stat
+            label="Calories"
+            value={
+              activity ? `${Math.round(activity.calories / 1000)} kcal` : "--"
+            }
+          />
+          <Stat
+            label="Active"
+            value={activity ? `${activity.activeMinutes} min` : "--"}
+          />
+        </View>
       </Card>
+
+      <ReadingCard
+        title="Heart rate"
+        unit="bpm"
+        icon="heart"
+        tone="peach"
+        reading={heartRate}
+        measuring={measuring === "heartRate"}
+        onMeasure={() => void qwatch.measure("heartRate")}
+      >
+        <Button
+          label={live ? "Stop live heart rate" : "Start live heart rate"}
+          icon={live ? "pause" : "radio"}
+          tone={live ? "rose" : "butter"}
+          disabled={!connected || measuring !== null}
+          onPress={() => void (live ? qwatch.stopLive() : qwatch.startLive())}
+        />
+      </ReadingCard>
+
+      <ReadingCard
+        title="Blood oxygen"
+        unit="%"
+        icon="droplet"
+        tone="sky"
+        reading={spo2}
+        measuring={measuring === "spo2"}
+        onMeasure={() => void qwatch.measure("spo2")}
+      />
+
+      <SectionTitle>History</SectionTitle>
+      <Card>
+        <Text weight="bold" className="mb-3 text-base">
+          Heart rate today
+        </Text>
+        <HourlyChart
+          bars={heartRateBars(hrHistory)}
+          floor={40}
+          ceiling={180}
+          tone="peach"
+          emptyLabel="Turn on interval heart rate in Band"
+        />
+      </Card>
+      <Card>
+        <Text weight="bold" className="mb-3 text-base">
+          Blood oxygen today
+        </Text>
+        <HourlyChart
+          bars={spo2Bars(spo2History)}
+          floor={85}
+          ceiling={100}
+          tone="sky"
+          emptyLabel="Turn on all-day SpO2 in Band"
+        />
+      </Card>
+    </Screen>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }): JSX.Element {
+  return (
+    <View className="flex-1 rounded-2xl border-2 border-ink bg-paper px-3 py-2">
+      <Text className="text-xs text-muted">{label}</Text>
+      <Text weight="bold" className="text-base" numberOfLines={1}>
+        {value}
+      </Text>
     </View>
   );
 }

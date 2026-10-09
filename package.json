@@ -1,26 +1,31 @@
 {
-  "name": "cloned-qwatch-pro",
+  "name": "qwatch-pro-oss-native",
   "version": "1.0.0",
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "lint:eslint": "eslint .",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@expo-google-fonts/space-grotesk": "^0.4.1",
     "@expo/metro-runtime": "~57.0.14",
     "@expo/vector-icons": "^15.1.1",
     "@gorhom/bottom-sheet": "^5.2.14",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~57.0.18",
+    "expo-build-properties": "~57.0.22",
     "expo-constants": "~57.0.16",
     "expo-font": "~57.0.2",
     "expo-linking": "~57.0.8",
+    "expo-notifications": "~57.0.21",
     "expo-router": "~57.0.17",
     "expo-splash-screen": "~57.0.8",
     "expo-status-bar": "~57.0.1",
@@ -28,6 +33,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
+    "react-native-ble-plx": "^3.5.1",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
@@ -40,10 +46,13 @@
     "uniwind": "^1.10.0"
   },
   "devDependencies": {
+    "@oxlint/plugins": "^1.81.0",
+    "@types/bun": "^1.4.1",
     "@types/react": "~19.2.15",
     "eslint": "^9.39.4",
     "eslint-config-expo": "~57.0.2",
-    "prettier": "^3.8.3",
+    "oxfmt": "^0.66.0",
+    "oxlint": "^1.81.0",
     "typescript": "~6.0.3"
   }
 }

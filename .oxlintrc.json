@@ -1,0 +1,66 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "react", "jsx-a11y"],
+  "jsPlugins": [
+    "./tools/oxlint/oxc-rules.mjs",
+    {
+      "name": "anti-slop",
+      "specifier": "./tools/oxlint/anti-slop/index.ts"
+    }
+  ],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "react/exhaustive-deps": "warn",
+    "react/no-array-index-key": "warn",
+    "react/no-danger": "warn",
+    "jsx-a11y/no-static-element-interactions": "warn",
+    "anti-slop/no-chained-type-assertions": "error",
+    "anti-slop/no-conditional-empty-object-spread": "error",
+    "anti-slop/no-known-value-widening": "error",
+    "anti-slop/no-module-mocking": "error",
+    "anti-slop/no-object-parameters": "error",
+    "anti-slop/no-reflect-apply": "error",
+    "anti-slop/no-reflect-get": "error",
+    "anti-slop/no-runtime-typeof": "error",
+    "anti-slop/no-shape-in-symbol-names": "error",
+    "anti-slop/no-unknown-parameters": "error",
+    "anti-slop/no-unknown-returns": "error",
+    "anti-slop/no-unknown-type-aliases": "error",
+    "anti-slop/no-unsafe-dictionary-type": "error",
+    "anti-slop/no-widen-then-assert": "error",
+    "anti-slop/require-safety-comment-for-type-assertion": "error",
+    "no-param-reassign": "error",
+    "typescript/prefer-as-const": "error",
+    "default-param-last": "error",
+    "typescript/prefer-enum-initializers": "error",
+    "one-var": ["error", "never"],
+    "shobshopping/no-unused-template-literal": "error",
+    "no-restricted-globals": [
+      "error",
+      "parseInt",
+      "parseFloat",
+      "NaN",
+      "Infinity"
+    ],
+    "typescript/no-inferrable-types": "error",
+    "shobshopping/no-useless-else": "error"
+  },
+  "ignorePatterns": [
+    "**/dist",
+    "**/.turbo",
+    "android/**",
+    "ios/**",
+    ".expo/**",
+    "tools/oxlint/anti-slop/**",
+    ".vscode/**",
+    ".claude/**",
+    ".agents/**",
+    ".opencode/**",
+    ".cursor/**"
+  ],
+  "env": {
+    "builtin": true
+  }
+}

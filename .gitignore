@@ -12,33 +12,56 @@ expo-env.d.ts
 # Uniwind (generated on first `expo start`)
 uniwind-types.d.ts
 
-# Native
+# Generated native projects (`expo prebuild` recreates them from app.json)
+/ios
+/android
+
+# Native build output
+build/
+.gradle/
 .kotlin/
+.cxx/
+*.apk
+*.aab
+*.ipa
+*.hprof
 *.orig.*
+
+# Signing keys and credentials
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
+*.pem
 *.mobileprovision
+google-services.json
+GoogleService-Info.plist
+
+# Env files
+.env
+.env*.local
 
 # Metro
 .metro-health-check*
 
-# Debug
+# Logs
+*.log
 npm-debug.*
 yarn-debug.*
 yarn-error.*
 
-# macOS
-.DS_Store
-*.pem
-
-# Local env files
-.env*.local
-
 # TypeScript
 *.tsbuildinfo
 
-# Generated native folders
-/ios
-/android
+# Editors and agents
+.idea/
+.vscode/
+.claude/
+.cursor/
+.agents/
+.opencode/
+
+# OS
+.DS_Store
+Thumbs.db

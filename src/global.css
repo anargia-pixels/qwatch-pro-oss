@@ -6,3 +6,28 @@
 /* End-user path: heroui-native lives in the project's node_modules, one
    level up from this src/global.css file. */
 @source '../node_modules/heroui-native/lib';
+
+/* Neobrutal pastel palette: cream paper, ink outlines, soft fills. */
+@theme {
+  --color-cream: #fff6e5;
+  --color-paper: #fffdf7;
+  --color-ink: #2b2118;
+  --color-muted: #7a6a5c;
+  --color-peach: #ffc9a9;
+  --color-rose: #ffc4d4;
+  --color-sky: #bfe3ff;
+  --color-mint: #bdebcf;
+  --color-butter: #ffe69a;
+  --color-lilac: #d9ccff;
+
+  /* Hard offset shadows, the neobrutalist signature. */
+  --shadow-brutal-xs: 1px 1px 0px #2b2118;
+  --shadow-brutal-sm: 2px 2px 0px #2b2118;
+  --shadow-brutal-md: 3px 3px 0px #2b2118;
+  --shadow-brutal: 4px 4px 0px #2b2118;
+
+  /* Space Grotesk, loaded in src/app/_layout.tsx. */
+  --font-grotesk: "SpaceGrotesk_400Regular";
+  --font-grotesk-medium: "SpaceGrotesk_500Medium";
+  --font-grotesk-bold: "SpaceGrotesk_700Bold";
+}
