@@ -120,10 +120,19 @@ class QWatchClient {
    * restore identifier lets iOS relaunch the app for BLE events in the background.
    */
   private ble(): BleManager {
-    this.manager ??= new BleManager({
-      restoreStateIdentifier: "qwatch-band",
-      restoreStateFunction: () => undefined,
-    });
+    if (!this.manager) {
+      this.manager = new BleManager({
+        restoreStateIdentifier: "qwatch-band",
+        restoreStateFunction: () => undefined,
+      });
+      // A reconnect that failed with Bluetooth off retries when it comes back
+      // on, instead of waiting for the next background tick.
+      this.manager.onStateChange((state) => {
+        const id = appSettings.get().lastDeviceId;
+        if (state !== State.PoweredOn || !id) return;
+        if (band.get().status === "reconnecting") void this.connect(id);
+      });
+    }
     return this.manager;
   }
 
@@ -484,14 +493,17 @@ class QWatchClient {
       const hours = decodeSpo2History(frame, 0);
       band.set({ spo2History: hours });
       const latest = hours.at(-1);
+      if (!latest) return;
       const current = band.get().spo2;
-      if (latest && (!current || current.source === "history")) {
+      const measuredAt = todayAtMinute(latest.hour * 60);
+      // A manual reading stays until a later hour's automatic one replaces it.
+      if (
+        !current ||
+        current.source === "history" ||
+        current.measuredAt < measuredAt
+      ) {
         band.set({
-          spo2: {
-            value: latest.max,
-            measuredAt: todayAtMinute(latest.hour * 60),
-            source: "history",
-          },
+          spo2: { value: latest.max, measuredAt, source: "history" },
         });
       }
     }
@@ -538,15 +550,13 @@ class QWatchClient {
         );
         return;
       case "liveHeartRate":
-        if (event.bpm > 0) {
-          band.set({
-            heartRate: {
-              value: event.bpm,
-              measuredAt: Date.now(),
-              source: "live",
-            },
-          });
-        }
+        // Zero means the band reads no pulse right now, usually because it is not worn.
+        band.set({
+          heartRate:
+            event.bpm > 0
+              ? { value: event.bpm, measuredAt: Date.now(), source: "live" }
+              : null,
+        });
         return;
       case "heartRateSettings":
         patchSettings({ heartRate: event.settings });
@@ -640,6 +650,11 @@ class QWatchClient {
         pending.kind === "heartRate"
           ? { heartRate: reading }
           : { spo2: reading },
+      );
+    } else if (error !== null) {
+      // The band could not read the value, so the last one no longer counts.
+      band.set(
+        pending.kind === "heartRate" ? { heartRate: null } : { spo2: null },
       );
     }
     pending.resolve(value);

@@ -2,7 +2,7 @@ import { AppState, type AppStateStatus } from "react-native";
 
 import { qwatch } from "@/lib/ble/client";
 import { appSettings, uploadsActive } from "@/lib/store/appSettings";
-import { band } from "@/lib/store/band";
+import { band, currentHeartRate, currentSpo2 } from "@/lib/store/band";
 import { maybeUpload } from "@/lib/upload/uploader";
 import { QWatchBackground } from "@/modules/qwatch-background";
 
@@ -39,6 +39,8 @@ async function onTick(): Promise<void> {
   const due = Date.now() - lastRefreshAt >= refreshIntervalMs();
   if (due) lastRefreshAt = Date.now();
   await qwatch.backgroundTick(due);
+  // A reading can go stale without any band push, so re-check the notification here.
+  syncService();
   await maybeUpload(true);
 }
 
@@ -64,7 +66,11 @@ type ServiceNotice = { title: string; text: string };
 
 /** Latest readings for the notification body, e.g. "♥ 72 bpm · O₂ 98% · 6,400 steps". */
 function readingsLine(): string {
-  const { heartRate, spo2, activity } = band.get();
+  const state = band.get();
+  const now = Date.now();
+  const heartRate = currentHeartRate(state, now);
+  const spo2 = currentSpo2(state, now);
+  const { activity } = state;
   return [
     `♥ ${heartRate ? heartRate.value : "--"} bpm`,
     `O₂ ${spo2 ? `${spo2.value}%` : "--"}`,

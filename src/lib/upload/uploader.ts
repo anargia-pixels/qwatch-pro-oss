@@ -1,5 +1,11 @@
 import { appSettings, uploadsActive } from "@/lib/store/appSettings";
-import { band, batteryDrainPerHour, type Reading } from "@/lib/store/band";
+import {
+  band,
+  batteryDrainPerHour,
+  currentHeartRate,
+  currentSpo2,
+  type Reading,
+} from "@/lib/store/band";
 
 const REQUEST_TIMEOUT_MS = 15_000;
 const HEARTBEAT_MS = 15 * 60_000;
@@ -23,6 +29,7 @@ function reading(value: Reading | null) {
 export function buildPayload() {
   const state = band.get();
   const activity = state.activity;
+  const now = Date.now();
   return {
     source: "qwatch-pro-oss",
     version: 1,
@@ -39,8 +46,9 @@ export function buildPayload() {
       charging: state.battery.charging,
       drainPerHour: batteryDrainPerHour(state.batteryHistory),
     },
-    heartRate: reading(state.heartRate),
-    spo2: reading(state.spo2),
+    // A reading that is no longer current goes out as null, never as an old value.
+    heartRate: reading(currentHeartRate(state, now)),
+    spo2: reading(currentSpo2(state, now)),
     steps: activity && {
       total: activity.steps,
       running: activity.runningSteps,

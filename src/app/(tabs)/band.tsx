@@ -134,10 +134,11 @@ export default function BandScreen(): JSX.Element {
               label="Interval heart rate"
               hint="Band measures on its own through the day"
             >
+              {/* A band without a heart-rate sensor can still have this on, so it can always be switched off. */}
               <Switch
                 label="Interval heart rate"
                 value={hr.enabled}
-                disabled={!capabilities.heartRate}
+                disabled={!capabilities.heartRate && !hr.enabled}
                 onChange={(enabled) =>
                   void qwatch.setHeartRateSettings({ ...hr, enabled })
                 }

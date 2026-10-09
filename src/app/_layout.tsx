@@ -23,6 +23,15 @@ import "../global.css";
 
 void SplashScreen.preventAutoHideAsync();
 
+// Started once per JS runtime rather than in an effect: Android unmounts the
+// React tree when the activity is destroyed (e.g. swiped from recents), while
+// the foreground service keeps the runtime and the band link alive. An effect
+// cleanup would stop the notification updates, alerts and uploads right then.
+startUploader();
+startAlerts();
+startBackground();
+void loadAppSettings().then(() => qwatch.restore());
+
 export default function RootLayout(): JSX.Element | null {
   const [fontsLoaded, fontError] = useFonts({
     SpaceGrotesk_400Regular,
@@ -30,14 +39,6 @@ export default function RootLayout(): JSX.Element | null {
     SpaceGrotesk_700Bold,
   });
   const ready = fontsLoaded || fontError !== null;
-
-  useEffect(() => {
-    const stops = [startUploader(), startAlerts(), startBackground()];
-    void loadAppSettings().then(() => qwatch.restore());
-    return () => {
-      for (const stop of stops) stop();
-    };
-  }, []);
 
   useEffect(() => {
     if (ready) void SplashScreen.hideAsync();
