@@ -47,8 +47,17 @@ modules/qwatch-background/  local Expo module (Android): foreground service + ti
 - **Heart rate.** Comes from a manual measurement (key 105), from live mode
   (key 30), or from the newest sample in the day's history. Whichever is
   newest wins. The card shows a pill saying where the value came from.
+  A value only counts while it is recent: it goes stale after the longer of
+  30 min and two of the band's heart-rate intervals plus 5 min. A live reading
+  of 0, or a failed manual measurement (not worn, timed out), clears it at
+  once. With automatic heart rate off on the band, the last measured value
+  never goes stale.
 - **SpO2.** Comes from a manual measurement, or from the last hour in the
-  action 42 history.
+  action 42 history. It goes stale like heart rate, using a 60 min interval
+  (125 min), since the band writes one entry per hour. A failed manual
+  measurement clears it, and with automatic SpO2 off the last value stays.
+- Stale or missing readings show as `--` on the cards and in the notification,
+  and are sent as `null` in the upload.
 - **Battery.** Each poll is stored in a rolling 24 h `batteryHistory`. The
   drain rate is calculated from the samples since the band last stopped
   charging, and needs at least 30 minutes of them. The card then shows
@@ -96,9 +105,10 @@ as possible:
   - runs the upload check.
 - **Foreground service (Android).** A `connectedDevice` foreground service
   keeps the process, and with it the BLE link, alive. It shows a low-importance
-  notification. Its title is the band name and battery level, and its text is
-  the latest heart rate, blood oxygen and steps (`♥ 72 bpm · O₂ 98% · 6,400
-steps`). The text updates in place as readings arrive. Android 12+ only lets the
+  notification. Its title is the band name and battery level. Its text is the
+  latest heart rate, blood oxygen and steps, such as
+  `♥ 72 bpm · O₂ 98% · 6,400 steps`, and updates in place as readings arrive,
+  including after the app is swiped from recents. Android 12+ only lets the
   service start while the app is visible, so it starts when a band connects and
   keeps running through reconnects. It stops when you disconnect or forget the
   band, or turn off **Stay connected**.
@@ -177,7 +187,9 @@ The app sends `POST <url>` with `Content-Type: application/json`:
 }
 ```
 
-- When the band has no data for a section, that section is `null`.
+- When the band has no data for a section, or its `heartRate` or `spo2`
+  reading is no longer current (see Readings), that section is `null`. A stale
+  value is never sent.
 - `history.heartRate[].minute` counts from local midnight.
 - `source` is one of `manual`, `live` or `history`.
 - The **Last upload** card shows the HTTP status or the error.
@@ -228,7 +240,7 @@ a cream (`#fff6e5`) background. The font is Space Grotesk.
     sinks into its shadow, shrinks a little and squares its corners.
   - Switches slide and grow the thumb; segment and tab pills spring in.
   - Steppers bump in the direction of the change.
-  - Chart bars and the battery fill grow into place.
+  - Chart bars grow into place, and the battery bars fill in.
   - Scan results slide in and glide when the list re-sorts.
   - Reanimated skips springs when the system "reduce motion" setting is on.
 - `cn()` in `src/lib/utils.ts` merges classes with tailwind-merge. It is

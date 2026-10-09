@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { View } from "react-native";
 
 import { BatteryCard } from "@/components/BatteryCard";
@@ -13,7 +13,12 @@ import { SectionTitle } from "@/components/ui/section-title";
 import { Text } from "@/components/ui/text";
 import { qwatch } from "@/lib/ble/client";
 import { formatDistance, heartRateBars, spo2Bars, timeAgo } from "@/lib/format";
-import { band, type Reading } from "@/lib/store/band";
+import {
+  band,
+  currentHeartRate,
+  currentSpo2,
+  type Reading,
+} from "@/lib/store/band";
 import type { Tone } from "@/lib/theme";
 
 const SOURCE_LABEL = {
@@ -56,7 +61,7 @@ function ReadingCard({
         </Text>
       </View>
       <Text className="text-sm text-muted">
-        {reading ? timeAgo(reading.measuredAt) : "No reading yet"}
+        {reading ? timeAgo(reading.measuredAt) : "No recent reading"}
       </Text>
       <View className="mt-4 gap-3">
         <Button
@@ -73,9 +78,20 @@ function ReadingCard({
   );
 }
 
+/** Re-renders every 30 s so "x min ago" and a reading's staleness keep up between band updates. */
+function useNow(): number {
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
+  return now;
+}
+
 export default function TodayScreen(): JSX.Element {
-  const heartRate = band.useSelector((s) => s.heartRate);
-  const spo2 = band.useSelector((s) => s.spo2);
+  const now = useNow();
+  const heartRate = band.useSelector((s) => currentHeartRate(s, now));
+  const spo2 = band.useSelector((s) => currentSpo2(s, now));
   const measuring = band.useSelector((s) => s.measuring);
   const live = band.useSelector((s) => s.liveHeartRate);
   const activity = band.useSelector((s) => s.activity);
@@ -163,24 +179,26 @@ export default function TodayScreen(): JSX.Element {
       <SectionTitle>History</SectionTitle>
       <Card>
         <Text weight="bold" className="mb-3 text-base">
-          Heart rate today
+          Heart rate today (bpm)
         </Text>
         <HourlyChart
           bars={heartRateBars(hrHistory)}
           floor={40}
-          ceiling={180}
+          ceiling={200}
+          ticks={[40, 80, 120, 160, 200]}
           tone="peach"
           emptyLabel="Turn on interval heart rate in Band"
         />
       </Card>
       <Card>
         <Text weight="bold" className="mb-3 text-base">
-          Blood oxygen today
+          Blood oxygen today (%)
         </Text>
         <HourlyChart
           bars={spo2Bars(spo2History)}
           floor={85}
           ceiling={100}
+          ticks={[85, 90, 95, 100]}
           tone="sky"
           emptyLabel="Turn on all-day SpO2 in Band"
         />

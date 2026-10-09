@@ -1,3 +1,4 @@
+import Constants from "expo-constants";
 import { useState } from "react";
 import type { JSX } from "react";
 import { View } from "react-native";
@@ -318,6 +319,10 @@ export default function SettingsScreen(): JSX.Element {
           </View>
         ) : null}
       </Card>
+
+      <Text className="text-center text-xs text-muted">
+        QWatch OSS {Constants.expoConfig?.version ?? ""}
+      </Text>
     </Screen>
   );
 }
