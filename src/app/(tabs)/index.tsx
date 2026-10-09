@@ -108,9 +108,9 @@ export default function TodayScreen(): JSX.Element {
         <Text weight="bold" className="mt-3 text-6xl leading-none">
           {activity ? activity.steps.toLocaleString() : "--"}
         </Text>
-        <View className="mt-3 h-5 overflow-hidden rounded-full border-2 border-ink bg-paper">
+        <View className="mt-3 h-5 overflow-hidden rounded-sm border-2 border-ink bg-paper">
           <View
-            className="h-full rounded-full bg-ink"
+            className="h-full rounded-sm bg-ink"
             style={{ width: `${progress * 100}%` }}
           />
         </View>

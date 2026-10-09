@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { View } from "react-native";
-import { useAnimatedStyle } from "react-native-reanimated";
+import { useAnimatedStyle, type SharedValue } from "react-native-reanimated";
 
 import { timeAgo } from "@/lib/format";
 import { springs, useSpringTo } from "@/lib/motion";
@@ -10,6 +10,25 @@ import { AnimatedView } from "./ui/animated";
 import { Badge } from "./ui/badge";
 import { Card, CardHeader } from "./ui/card";
 import { Text } from "./ui/text";
+
+/** One bar per 5 % of charge. */
+const SEGMENTS = 20;
+
+/** Turns black as the animated count reaches its bar, so the bars fill in with a spring. */
+function BatterySegment({
+  index,
+  count,
+}: {
+  index: number;
+  count: SharedValue<number>;
+}): JSX.Element {
+  const style = useAnimatedStyle(() => ({
+    opacity: Math.min(1, Math.max(0, count.get() - index)),
+  }));
+  return (
+    <AnimatedView className="h-full flex-1 rounded-sm bg-ink" style={style} />
+  );
+}
 
 function usageLabel(drain: number | null, percent: number): string {
   if (drain === null) return "Collecting usage — check back in a bit";
@@ -26,12 +45,10 @@ export function BatteryCard(): JSX.Element {
   const battery = band.useSelector((s) => s.battery);
   const history = band.useSelector((s) => s.batteryHistory);
   const percent = battery?.percent ?? 0;
-  const width = useSpringTo(percent, springs.slowSpatial, { from: 0 });
-  const fillStyle = useAnimatedStyle(() => ({ width: `${width.get()}%` }));
+  const litCount = Math.round((percent * SEGMENTS) / 100);
+  const count = useSpringTo(litCount, springs.slowSpatial, { from: 0 });
   const drain = batteryDrainPerHour(history);
   const lastAt = history.at(-1)?.at ?? null;
-  const fill =
-    percent > 50 ? "bg-mint" : percent > 20 ? "bg-butter" : "bg-rose";
 
   return (
     <Card tone="butter">
@@ -52,11 +69,10 @@ export function BatteryCard(): JSX.Element {
         </Text>
       </View>
       <View className="mt-3 h-6 flex-row items-center">
-        <View className="h-full flex-1 overflow-hidden rounded-xl border-2 border-ink bg-paper p-0.5">
-          <AnimatedView
-            className={`h-full rounded-lg ${fill}`}
-            style={fillStyle}
-          />
+        <View className="h-full flex-1 flex-row gap-0.5 overflow-hidden rounded-sm border-2 border-ink bg-paper p-0.5">
+          {Array.from({ length: SEGMENTS }, (_, index) => (
+            <BatterySegment key={index} index={index} count={count} />
+          ))}
         </View>
         <View className="ml-0.5 h-3 w-1.5 rounded-r-sm bg-ink" />
       </View>
