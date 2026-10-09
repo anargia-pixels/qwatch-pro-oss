@@ -40,7 +40,7 @@ export type CommandFrame = {
 };
 
 export function parseCommandFrame(frame: Uint8Array): CommandFrame | null {
-  // The vendor SDK dispatches without verifying the checksum, so we do too.
+  // The vendor SDK drops frames that fail the checksum. This parser doesn't check it.
   if (frame.length !== COMMAND_FRAME_LENGTH) return null;
   const head = frame[0] ?? 0;
   return {

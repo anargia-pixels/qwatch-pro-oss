@@ -38,7 +38,8 @@ Every command frame is exactly 16 bytes:
 
 - In a response, `key & 0x80` set means the command **failed**. The real key
   is `key & 0x7F`.
-- The SDK does **not** verify the checksum on received frames.
+- The vendor SDK drops received frames whose checksum is wrong. This app does
+  not check it yet.
 - Many settings follow a read/write pattern. Payload byte 0 is `1` to read and
   `2` to write. Replies to a read echo `1` in payload byte 0.
 
@@ -76,8 +77,11 @@ cover write latency.
 
 | Reply bit     | Meaning               |
 | ------------- | --------------------- |
-| `p[1] & 0x40` | supports heart rate   |
+| `p[1] & 0x40` | heart rate when clear |
 | `p[3] & 0x02` | supports blood oxygen |
+
+The `p[1]` bit is inverted. The vendor calls it `mSupportHeart`, but it is set
+when the band has no heart rate. The vendor hides its heart card in that case.
 
 ### Battery — key 3
 

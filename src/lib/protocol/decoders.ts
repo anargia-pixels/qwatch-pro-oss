@@ -76,7 +76,8 @@ export function decodeCommand(frame: CommandFrame): CommandEvent | null {
       return {
         type: "timeSet",
         capabilities: {
-          heartRate: (byteAt(p, 1) & 0x40) !== 0,
+          // Inverted: set means the band has no heart rate (the vendor hides its heart card then).
+          heartRate: (byteAt(p, 1) & 0x40) === 0,
           spo2: (byteAt(p, 3) & 0x02) !== 0,
         },
       };
