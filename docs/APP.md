@@ -159,7 +159,7 @@ The app sends `POST <url>` with `Content-Type: application/json`:
 ```json
 {
   "source": "qwatch-pro-oss",
-  "version": 1,
+  "version": 2,
   "sentAt": "2026-10-09T08:00:00.000Z",
   "connected": true,
   "device": {
@@ -181,6 +181,7 @@ The app sends `POST <url>` with `Content-Type: application/json`:
     "updatedAt": "…"
   },
   "history": {
+    "dayStart": "2026-10-08T18:00:00.000Z",
     "heartRate": [{ "minute": 485, "bpm": 71 }],
     "spo2": [{ "hour": 8, "min": 95, "max": 99 }]
   }
@@ -190,7 +191,13 @@ The app sends `POST <url>` with `Content-Type: application/json`:
 - When the band has no data for a section, or its `heartRate` or `spo2`
   reading is no longer current (see Readings), that section is `null`. A stale
   value is never sent.
-- `history.heartRate[].minute` counts from local midnight.
+- `history` holds only the entries that are new or changed since the last
+  successful upload, so the server must merge them into what it already has.
+  A revised entry (for example the current hour's SpO2 range) is sent again
+  with the same `minute` or `hour`. After an app restart or at a new day the
+  full day goes out once.
+- `history.dayStart` is local midnight of the day the entries belong to.
+  `history.heartRate[].minute` counts from it.
 - `source` is one of `manual`, `live` or `history`.
 - The **Last upload** card shows the HTTP status or the error.
 - **Send test** saves your edits and uploads once right away.
@@ -203,7 +210,7 @@ The app sends `POST <url>` with `Content-Type: application/json`:
 - **Background on iOS:** whenever a band notification wakes the app and the
   interval has passed.
 - In the background an upload is skipped when the payload, ignoring `sentAt`,
-  matches the last delivered one. A heartbeat still goes out at least every
+  matches the last delivered one and there is no new history. A heartbeat still goes out at least every
   15 min. An idle band therefore costs no network.
 
 ### Limitations
