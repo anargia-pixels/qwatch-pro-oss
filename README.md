@@ -143,3 +143,8 @@ bun run typecheck && bun run lint && bun run format:check
 
 If you have a different QWatch-family band and something doesn't work, open an
 issue with the band's name and firmware version, shown on the Band tab.
+
+## License
+
+[Apache License 2.0](LICENSE). The protocol was reverse-engineered from the
+vendor's app; no vendor code or assets are included.

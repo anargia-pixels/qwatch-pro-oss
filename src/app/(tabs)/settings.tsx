@@ -321,7 +321,7 @@ export default function SettingsScreen(): JSX.Element {
       </Card>
 
       <Text className="text-center text-xs text-muted">
-        QWatch OSS {Constants.expoConfig?.version ?? ""}
+        QWatch OSS {Constants.expoConfig?.version ?? ""} · Apache-2.0
       </Text>
     </Screen>
   );
